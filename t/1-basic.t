@@ -5,7 +5,7 @@
 use strict;
 use Test::More tests => 2;
 
-use_ok('HTML::FromANSI', show_cursor => 1);
+use ok 'HTML::FromANSI', show_cursor => 1;
 
 my $text = ansi2html("\x1b[1;34m", "This text is bold blue.");
 

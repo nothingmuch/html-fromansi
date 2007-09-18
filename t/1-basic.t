@@ -1,6 +1,4 @@
 #!/usr/bin/perl -w
-# $File: //member/autrijus/HTML-FromANSI/t/1-basic.t $ $Author: autrijus $
-# $Revision: #2 $ $Change: 7866 $ $DateTime: 2003/09/04 17:10:17 $
 
 use strict;
 use Test::More tests => 2;

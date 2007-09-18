@@ -167,7 +167,12 @@ sub _obj_args {
 }
 
 sub ansi2html {
-    my ( $self, @lines ) = _obj_args(@_);
+    my ( $self, @args ) = _obj_args(@_);
+    $self->ansi_to_html(@args);
+}
+
+sub ansi_to_html {
+    my ( $self, @lines ) = @_;
 
     my $vt = Term::VT102->new(
         cols	=> $self->{cols} || 80,

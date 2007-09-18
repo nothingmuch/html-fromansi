@@ -292,9 +292,9 @@ Audrey Tang E<lt>audreyt@audreyt.orgE<gt>
 
 Copyright 2001, 2002, 2003 by Audrey Tang E<lt>audreyt@audreyt.orgE<gt>.
 
-This program is free software; you can redistribute it and/or 
-modify it under the same terms as Perl itself.
+Copyright 2007 Yuval Kogman E<lt>nothingmuch@Woobling.orgE<gt>
 
-See L<http://www.perl.com/perl/misc/Artistic.html>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the MIT license or the same terms as Perl itself.
 
 =cut

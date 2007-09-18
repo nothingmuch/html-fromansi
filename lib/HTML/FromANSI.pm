@@ -330,6 +330,7 @@ L<Term::VT102::Boundless>, L<HTML::Entities>, L<Term::ANSIScreen>
 =head1 AUTHORS
 
 Audrey Tang E<lt>audreyt@audreyt.orgE<gt>
+Yuval Kogman E<lt>nothingmuch@woobling.orgE<gt>
 
 =head1 COPYRIGHT
 

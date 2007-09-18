@@ -4,7 +4,7 @@ $HTML::FromANSI::VERSION = '1.01';
 use strict;
 use base qw/Exporter/;
 use vars qw/@EXPORT @EXPORT_OK @Color %Options/;
-use Term::VT102;
+use Term::VT102::Boundless;
 use HTML::Entities;
 use Scalar::Util qw(blessed reftype);
 use Carp qw(croak);
@@ -27,7 +27,9 @@ September 5, 2003.
         fill_cols => 1,
     );
 
-    print $h->ansi_to_html(color('bold blue'), "This text is bold blue.");
+    $h->add_lines(color('bold blue'), "This text is bold blue.");
+
+    print $h->html;
 
 
     # The old API still works:
@@ -145,6 +147,8 @@ Defaults to C<0>.
     style	=> 'line-height: 1; letter-spacing: 0; font-size: 12pt',
     tt		=> 1,
     show_cursor	=> 0,
+
+    terminal_class => 'Term::VT102::Boundless',
 );
 
 sub import {
@@ -180,19 +184,48 @@ sub ansi2html {
     $self->ansi_to_html(@args);
 }
 
-sub ansi_to_html {
-    my ( $self, @lines ) = @_;
+sub terminal_object {
+    my ( $self, @args ) = @_;
+    $self->{terminal_object} ||= $self->create_terminal_object(@args);
+}
 
-    my $vt = Term::VT102->new(
-        cols	=> $self->{cols} || 80,
-        rows	=> $self->{rows} || $self->count_lines(@lines),
+sub create_terminal_object {
+    my ( $self, %args ) = @_;
+
+    my $class = $self->{terminal_class};
+
+    if ( $class ne 'Term::VT102::Boundless' ) {
+        ( my $file = "${class}.pm" ) =~ s{::}{/}g;
+        require $file;
+    }
+
+    my $vt = Term::VT102::Boundless->new(
+        cols => $self->{cols},
     );
 
     $vt->option_set(LINEWRAP => $self->{linewrap});
     $vt->option_set(LFTOCRLF => $self->{lf_to_crlf});
-    $vt->process($_) for @lines;
 
-    my $result = $self->parse_vt($vt);
+    return $vt;
+}
+
+sub add_lines {
+    my ( $self, @lines ) = @_;
+    $self->terminal_object->process($_) for @lines;
+}
+
+sub ansi_to_html {
+    my ( $self, @lines ) = @_;
+
+    $self->add_lines(@lines);
+
+    return $self->html;
+}
+
+sub html {
+    my ( $self, @args ) = @_;
+
+    my $result = $self->parse_vt($self->terminal_object);
 
     if (length $self->{font_face} or length $self->{style}) {
         $result = "<font face='$self->{font_face}' style='$self->{style}'>".
@@ -202,19 +235,6 @@ sub ansi_to_html {
     $result = "<tt>$result</tt>" if $self->{tt};
 
     return $result;
-}
-
-sub count_lines {
-    my ( $self, @lines ) = _obj_args(@_);
-
-    my $lines = 0;
-
-    for (map { split(/\n/) } join('', @lines)) {
-        s/\x1b\[[^a-zA-Z]*[a-zA-Z]//g;
-        $lines += int(length($_) / 80) + 1;
-    }
-
-    return $lines;
 }
 
 sub parse_vt {
@@ -257,7 +277,7 @@ sub parse_vt {
         }
 
         $out .= "<br>";
-    } 
+    }
 
     return "$out</span>";
 }
@@ -274,7 +294,7 @@ sub diff_attr {
         } keys %{$this}
     );
 
-    # bold, faint, standout, underline, blink and reverse 
+    # bold, faint, standout, underline, blink and reverse
     my ($fg, $bg, $bo, $fo, $st, $ul, $bl, $rv)
         = @{$this}{qw|fg bg bo fo st ul bl rv|};
 
@@ -296,7 +316,7 @@ __END__
 
 =head1 SEE ALSO
 
-L<Term::VT102>, L<HTML::Entities>, L<Term::ANSIScreen>
+L<Term::VT102::Boundless>, L<HTML::Entities>, L<Term::ANSIScreen>
 
 =head1 AUTHORS
 

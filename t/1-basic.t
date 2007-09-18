@@ -13,7 +13,6 @@ is($text, join('', split("\n", << '.')), 'basic conversion');
  style='line-height: 1; letter-spacing: 0; font-size: 12pt'
 ><span style='color: blue; background: black; '>
 This&nbsp;text&nbsp;is&nbsp;bold&nbsp;blue.</span>
-<span style='color: black; background: gray; '>&nbsp;</span>
 <span style='color: black; background: black; '><br></span>
 </font></tt>
 .

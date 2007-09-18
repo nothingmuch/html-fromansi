@@ -15,10 +15,10 @@ WriteMakefile(
     BINARY_LOCATION	=> 'x86/HTML-FromANSI.tar.gz',
 
     PREREQ_PM		=> {
-	'Test::More'	=> '0.11',
-	'Term::VT102'	=> '0.01',
-	'HTML::Entities'=> '0.01',
-    'Test::use::ok' => 0,
+	'Test::More'             => '0.11',
+	'Term::VT102::Boundless' => '0.02
+	'HTML::Entities'         => '0.01',
+    'Test::use::ok'          => 0,
     },
 
     EXE_FILES		=> [ 'script/ansi2html' ],

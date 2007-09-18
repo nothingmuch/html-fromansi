@@ -18,6 +18,7 @@ WriteMakefile(
 	'Test::More'	=> '0.11',
 	'Term::VT102'	=> '0.01',
 	'HTML::Entities'=> '0.01',
+    'Test::use::ok' => 0,
     },
 
     EXE_FILES		=> [ 'script/ansi2html' ],

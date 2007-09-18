@@ -23,6 +23,15 @@ September 5, 2003.
     use HTML::FromANSI;
     use Term::ANSIColor;
 
+    my $h = HTML::FromANSI->new(
+        fill_cols => 1,
+    );
+
+    print $h->ansi_to_html(color('bold blue'), "This text is bold blue.");
+
+
+    # The old API still works:
+
     $HTML::FromANSI::Options{fill_cols} = 1; # fill all 80 cols
     print ansi2html(color('bold blue'), "This text is bold blue.");
 

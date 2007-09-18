@@ -1,6 +1,3 @@
-# $File: //member/autrijus/HTML-FromANSI/lib/HTML/FromANSI.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7867 $ $DateTime: 2003/09/04 17:11:36 $
-
 package HTML::FromANSI;
 $HTML::FromANSI::VERSION = '1.01';
 
@@ -261,11 +258,11 @@ L<Term::VT102>, L<HTML::Entities>, L<Term::ANSIScreen>
 
 =head1 AUTHORS
 
-Autrijus Tang E<lt>autrijus@autrijus.orgE<gt>
+Audrey Tang E<lt>audreyt@audreyt.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2001, 2002, 2003 by Autrijus Tang E<lt>autrijus@autrijus.orgE<gt>.
+Copyright 2001, 2002, 2003 by Audrey Tang E<lt>audreyt@audreyt.orgE<gt>.
 
 This program is free software; you can redistribute it and/or 
 modify it under the same terms as Perl itself.

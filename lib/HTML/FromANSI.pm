@@ -6,6 +6,8 @@ use base qw/Exporter/;
 use vars qw/@EXPORT @EXPORT_OK @Color %Options/;
 use Term::VT102;
 use HTML::Entities;
+use Scalar::Util qw(blessed reftype);
+use Carp qw(croak);
 
 =head1 NAME
 
@@ -124,7 +126,7 @@ Defaults to C<0>.
 %Options = (
     linewrap	=> 1,		# wrap long lines
     lf_to_crlf	=> (		# translate \n to \r\n on Unix
-	$^O !~ /^(?:MSWin32|MacOS)$/
+        $^O !~ /^(?:MSWin32|MacOS)$/
     ),
     fill_cols	=> 0,		# fill all (80) columns with space
     html_entity => 0,		# escape all HTML entities
@@ -139,26 +141,48 @@ Defaults to C<0>.
 sub import {
     my $class = shift;
     while (my ($k, $v) = splice(@_, 0, 2)) {
-	$Options{$k} = $v;
+        $Options{$k} = $v;
     }
     $class->export_to_level(1);
 }
 
+sub new {
+    my ( $class, @args ) = @_;
+
+    if ( @args == 1 && reftype($args[0]) eq 'HASH' ) {
+        return bless $args[0], $class;
+    } elsif ( @args % 2 == 0 ) {
+        return bless { @args }, $class;
+    } else {
+        croak "Constructor arguments must be an even sized list or a hash ref";
+    }
+}
+
+sub _obj_args {
+    if ( blessed($_[0]) and $_[0]->isa(__PACKAGE__) ) {
+        return @_;
+    } else {
+        return ( __PACKAGE__->new(), @_ );
+    }
+}
+
 sub ansi2html {
+    my ( $self, @lines ) = _obj_args(@_);
+
     my $vt = Term::VT102->new(
-	cols	=> $Options{cols} || 80,
-	rows	=> $Options{rows} || count_lines(@_),
+        cols	=> $Options{cols} || 80,
+        rows	=> $Options{rows} || $self->count_lines(@lines),
     );
 
     $vt->option_set(LINEWRAP => $Options{linewrap});
     $vt->option_set(LFTOCRLF => $Options{lf_to_crlf});
-    $vt->process($_) for @_;
+    $vt->process($_) for @lines;
 
-    my $result = parse_vt($vt);
+    my $result = $self->parse_vt($vt);
 
     if (length $Options{font_face} or length $Options{style}) {
-	$result = "<font face='$Options{font_face}' style='$Options{style}'>".
-	          $result."</font>";
+        $result = "<font face='$Options{font_face}' style='$Options{style}'>".
+        $result."</font>";
     }
 
     $result = "<tt>$result</tt>" if $Options{tt};
@@ -167,74 +191,78 @@ sub ansi2html {
 }
 
 sub count_lines {
+    my ( $self, @lines ) = _obj_args(@_);
+
     my $lines = 0;
 
-    for (map { split(/\n/) } join('', @_)) {
-	s/\x1b\[[^a-zA-Z]*[a-zA-Z]//g;
-	$lines += int(length($_) / 80) + 1;
+    for (map { split(/\n/) } join('', @lines)) {
+        s/\x1b\[[^a-zA-Z]*[a-zA-Z]//g;
+        $lines += int(length($_) / 80) + 1;
     }
 
     return $lines;
 }
 
 sub parse_vt {
-    my $vt = shift;
+    my ( $self, $vt ) = _obj_args(@_);
+
     my (%prev, %this); # attributes
     my $out;
 
     my ($x, $y) = ($vt->x, $vt->y);
 
     for (1 .. $vt->rows) {
-	local $SIG{__WARN__} = sub {}; # abandon all hope, ye who enter here
+        local $SIG{__WARN__} = sub {}; # abandon all hope, ye who enter here
 
-	my $row = $vt->row_text($_);
-	my $att = $vt->row_attr($_);
-	my $yok = ($_ == $y);
+        my $row = $vt->row_text($_);
+        my $att = $vt->row_attr($_);
+        my $yok = ($_ == $y);
 
-	for (0 .. length($row)) {
-	    my $text = substr($row, $_, 1);
+        for (0 .. length($row)) {
+            my $text = substr($row, $_, 1);
 
-	    @this{qw|fg bg bo fo st ul bl rv|} = $vt->attr_unpack(
-		substr($att, $_ * 2, 2)
-	    );
+            @this{qw|fg bg bo fo st ul bl rv|} = $vt->attr_unpack(
+                substr($att, $_ * 2, 2)
+            );
 
-	    if ($yok and $x == $_ + 1) {
-		@this{qw|fg bg bo bl|} = (@this{qw|bg fg bl bo|});
-		$text = ' ' if $text eq '\000';
-	    }
-	    elsif ($text eq "\000") {
-		next unless $Options{fill_cols};
-	    }
+            if ($yok and $x == $_ + 1) {
+                @this{qw|fg bg bo bl|} = (@this{qw|bg fg bl bo|});
+                $text = ' ' if $text eq '\000';
+            }
+            elsif ($text eq "\000") {
+                next unless $Options{fill_cols};
+            }
 
-	    $out .= diff_attr(\%prev, \%this) . (
-		($text eq ' ' or $text eq "\000") ? '&nbsp;' :
-		$Options{html_entity} ? encode_entities($text)
-		: encode_entities($text, '<>"&')
-	    );
+            $out .= $self->diff_attr(\%prev, \%this) . (
+                ($text eq ' ' or $text eq "\000") ? '&nbsp;' :
+                $Options{html_entity} ? encode_entities($text)
+                : encode_entities($text, '<>"&')
+            );
 
-	    %prev = %this;
-	}
+            %prev = %this;
+        }
 
-	$out .= "<br>";
+        $out .= "<br>";
     } 
 
     return "$out</span>";
 }
 
 sub diff_attr {
-    my ($prev, $this) = @_;
+    my ($self, $prev, $this) = _obj_args(@_);
     my $out = '';
 
     # skip if the attributes remain unchanged
     return if %{$prev} and not scalar (grep {
-	($_->[0] ne $_->[1])
-    } map {
-	[ $prev->{$_}, $this->{$_} ]
-    } keys %{$this});
+            ($_->[0] ne $_->[1])
+        } map {
+            [ $prev->{$_}, $this->{$_} ]
+        } keys %{$this}
+    );
 
     # bold, faint, standout, underline, blink and reverse 
     my ($fg, $bg, $bo, $fo, $st, $ul, $bl, $rv)
-	= @{$this}{qw|fg bg bo fo st ul bl rv|};
+        = @{$this}{qw|fg bg bo fo st ul bl rv|};
 
     ($fg, $bg) = ($bg, $fg) if $rv;
 

@@ -8,9 +8,6 @@ use Test::More tests => 2;
 use_ok('HTML::FromANSI', show_cursor => 1);
 
 my $text = ansi2html("\x1b[1;34m", "This text is bold blue.");
-open FH, '>', '/home/autrijus/test.html';
-print FH $text;
-close FH;
 
 is($text, join('', split("\n", << '.')), 'basic conversion');
 <tt><font

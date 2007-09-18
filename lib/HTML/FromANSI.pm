@@ -27,7 +27,7 @@ September 5, 2003.
         fill_cols => 1,
     );
 
-    $h->add_lines(color('bold blue'), "This text is bold blue.");
+    $h->add_text(color('bold blue'), "This text is bold blue.");
 
     print $h->html;
 
@@ -209,7 +209,7 @@ sub create_terminal_object {
     return $vt;
 }
 
-sub add_lines {
+sub add_text {
     my ( $self, @lines ) = @_;
     $self->terminal_object->process($_) for @lines;
 }
@@ -217,7 +217,7 @@ sub add_lines {
 sub ansi_to_html {
     my ( $self, @lines ) = @_;
 
-    $self->add_lines(@lines);
+    $self->add_text(@lines);
 
     return $self->html;
 }

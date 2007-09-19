@@ -210,6 +210,8 @@ sub create_terminal_object {
     $vt->option_set(LINEWRAP => $self->{linewrap});
     $vt->option_set(LFTOCRLF => $self->{lf_to_crlf});
 
+    $vt->_code_DECTCEM( $self->{show_cursor} );
+
     return $vt;
 }
 
@@ -249,21 +251,28 @@ sub parse_vt {
 
     my ($x, $y) = ($vt->x, $vt->y);
 
-    for (1 .. $vt->rows) {
+    my $total_rows = $vt->rows;
+
+    foreach my $row_num (1 .. $total_rows) {
         local $SIG{__WARN__} = sub {}; # abandon all hope, ye who enter here
 
-        my $row = $vt->row_text($_);
-        my $att = $vt->row_attr($_);
-        my $yok = ($_ == $y);
+        my $row = $vt->row_text($row_num);
+        my $att = $vt->row_attr($row_num);
 
-        for (0 .. length($row)) {
-            my $text = substr($row, $_, 1);
+        if ( $row_num == $total_rows # this is the last row
+            and $row =~ /^[\s\x00]*$/s # and it's completely empty
+            and !$self->{show_cursor} # and we're not showing a cursor
+        ) { last } # skip it
+
+        foreach my $col_num (0 .. length($row)) {
+            my $text = substr($row, $col_num,, 1);
 
             @this{qw|fg bg bo fo st ul bl rv|} = $vt->attr_unpack(
-                substr($att, $_ * 2, 2)
+                substr($att, $col_num * 2, 2)
             );
 
-            if ($yok and $x == $_ + 1) {
+            if ($y == $row_num and $x == $col_num + 1 and $self->{show_cursor}) {
+                # this block is the cursor
                 @this{qw|fg bg bo bl|} = (@this{qw|bg fg bl bo|});
                 $text = ' ' if $text eq '\000';
             }
@@ -272,7 +281,7 @@ sub parse_vt {
             }
 
             $out .= $self->diff_attr(\%prev, \%this) . (
-                ($text eq ' ' or $text eq "\000") ? '&nbsp;' :
+                ($text eq ' ' or $text eq "\000") ? '&nbsp;':
                 $self->{html_entity} ? encode_entities($text)
                 : encode_entities($text, '<>"&')
             );

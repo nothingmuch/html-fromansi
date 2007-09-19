@@ -5,6 +5,8 @@ use Test::More tests => 2;
 
 use ok 'HTML::FromANSI', show_cursor => 1;
 
+$HTML::FromANSI::Options{cols} = 1; # minimum width
+
 my $text = ansi2html("\x1b[1;34m", "This text is bold blue.");
 
 is($text, join('', split("\n", << '.')), 'basic conversion');

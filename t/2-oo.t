@@ -6,6 +6,7 @@ use Test::More tests => 2;
 use ok 'HTML::FromANSI';
 
 my $h = HTML::FromANSI->new(
+    cols        => 1, # minimum width
     show_cursor => 1,
 );
 

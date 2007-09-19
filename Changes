@@ -1,3 +1,6 @@
+2.02
+    - Fix silly reverse bug (unused variables)
+
 2.01
     - Term::VT102::Boundless fixes integrated
     - Fix show_cursor

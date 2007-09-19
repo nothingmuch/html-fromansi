@@ -13,11 +13,6 @@ use Carp qw(croak);
 
 HTML::FromANSI - Mark up ANSI sequences as HTML
 
-=head1 VERSION
-
-This document describes version 1.01 of HTML::FromANSI, released
-September 5, 2003.
-
 =head1 SYNOPSIS
 
     use HTML::FromANSI (); # avoid exports if using OO

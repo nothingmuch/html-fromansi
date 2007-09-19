@@ -8,7 +8,7 @@ ansi2html - Convert ANSI sequence to HTML
 
 =head1 SYNOPSIS
 
-B<ansi2html> S<[ B<-p> ]> S<[ I<infile> ]> S<[ I<outfile> ]>
+B<ansi2html> S<[ B<-p> B<-f> B<-c> ]> S<[ I<infile> ]> S<[ I<outfile> ]>
 
 =head1 DESCRIPTION
 
@@ -23,30 +23,40 @@ to 1, filling empty columns with space characters.
 
 If the B<-p> option is specified, it will print HTML header and footers.
 
+If the B<-f> option is specified columns will not be filled.
+
+If the B<-c> option is specified the cursor will be shown.
+
 =cut
 
 use strict;
 use Getopt::Std;
-use HTML::FromANSI qw|%Options ansi2html|;
+use HTML::FromANSI ();
 
-my %args; getopts('p', \%args);
-$Options{fill_cols} = 1;
+my %args; getopts('pcf', \%args);
+
+my $h = HTML::FromANSI->new(
+    fill_cols   => !$args{f},
+    show_cursor => $args{c},
+);
 
 my ($infile, $outfile) = @ARGV;
 
-open IN,  $infile     or die "cannot read $infile: $!"   if $infile;
-open OUT, ">$outfile" or die "cannot write $outfile: $!" if $outfile;
+open IN,  "<", $infile  or die "cannot read $infile: $!"   if $infile;
+open OUT, ">", $outfile or die "cannot write $outfile: $!" if $outfile;
 select OUT if $outfile;
+
+$h->add_text($infile ? <IN> : <STDIN>);
 
 if ($args{p}) {
     my $title = 'ansi2html' . ($infile ? " - $infile" : '');
 
-    print "<HTML><HEAD><TITLE>$title</TITLE></HEAD><BODY>".
-	  ansi2html($infile ? <IN> : <STDIN>).
-	  "</BODY></HTML>";
+    print "<HTML><HEAD><TITLE>$title</TITLE></HEAD><BODY>"
+	. $h->html
+	. "</BODY></HTML>";
 }
 else {
-    print ansi2html($infile ? <IN> : <STDIN>);
+    print $h->html;
 }
 
 exit;
@@ -62,6 +72,8 @@ Audrey Tang E<lt>audreyt@audreyt.orgE<gt>
 =head1 COPYRIGHT
 
 Copyright 2001, 2002 by Audrey Tang E<lt>audreyt@audreyt.orgE<gt>.
+
+Copyright 2007 by Yuval Kogman E<lt>nothingmuch@woobling.orgE<gt>.
 
 This program is free software; you can redistribute it and/or 
 modify it under the same terms as Perl itself.

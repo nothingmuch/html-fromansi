@@ -262,6 +262,7 @@ sub create_terminal_object {
 
     my $vt = $class->new(
         cols => $self->{cols},
+        ( defined($self->{rows}) ? ( rows => $self->{rows} ) : () ),
     );
 
     $vt->option_set(LINEWRAP => $self->{linewrap});

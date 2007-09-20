@@ -1,3 +1,8 @@
+2.03
+    - Document stuff
+    - Fix show_cursor == 0 row skipping logic
+    - Allow passing of minimal row count again
+
 2.02
     - Fix silly reverse bug (unused variables)
 

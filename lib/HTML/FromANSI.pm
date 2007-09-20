@@ -49,18 +49,49 @@ codes, using stylesheets to control color and blinking properties.
 It exports C<ansi2html()> by default, which takes an array, joins it
 it into a single scalar, and returns its HTML rendering.
 
-From version 0.99 and above, this module has been changed to use the
-excellent B<Term::VT102> module, so cursor movement and other terminal
-control codes are properly handled.
+From version 2.00 an object oriented api which is safer for multiple uses (no
+more manipulation of shared C<%Options>) is available. It is reccomended that
+you no longer import any functions by doing:
 
-If you want to generate these movement codes in perl, please take a
-look at my B<Term::ANSIScreen> module.
+    use HTML::FromANSI ();
+
+and use the new documented API instead of the functional one.
+
+The underlying ANSI code processing is done by L<Term::VT102>, a DEC VT102
+terminal emulator. To generate ANSI codes for color changes, cursor movements
+etc, take a look at L<Term::ANSIScreen> and L<Term::ANSIColor>.
+
+=head1 METHODS
+
+=over 4
+
+=item new
+
+The constructor. See L</OPTIONS> for the options it takes.
+
+=item add_text @text
+
+Adds text input to the terminal emulator.
+
+=item html
+
+Renders the screen as computed by C<terminal_object> into HTML.
+
+=item ansi_to_html @text
+
+A convenience method.
+
+Calls C<add_text> and then C<html>.
+
+=item terminal_object
+
+The underlying terminal emulator object.
+
+=back
 
 =head1 OPTIONS
 
-There are various options stored in the C<%HTML::FromANSI::Options>
-hash; you can also enter them explicitly from the C<use> line. Below
-are brief description of each option:
+These are parameters you can pass to C<new>.
 
 =over 4
 
@@ -68,6 +99,9 @@ are brief description of each option:
 
 A boolean value to specify whether to wrap lines that exceeds
 width specified by C<col>, or simply truncate them. Defaults to C<1>.
+
+Only takes effect if you override C<terminal_class> or C<terminal_object> with
+a L<Term::VT102> (instead of L<Term::VT102::Boundless>).
 
 =item lf_to_crlf
 
@@ -94,12 +128,20 @@ ANSI art entries.)
 
 A number specifying the width of the virtual terminal; defaults to 80.
 
+When C<Term::VT102::Boundless> is in use (the default) this specifies the
+minimum number of rows to draw.
+
+When using C<Term::VT102> (by overriding C<terminal_class> or
+C<terminal_object>) then the number of columns is fixed.
+
 =item rows
 
-A number specifying the height of the virtual terminal; rows that exceeds
-this number will be truncated. If left unspecified, it will be recalculated
-automatically on each C<ansi2html> invocation, which is probably what you
-want in most cases.
+When C<Term::VT102::Boundless> is in use (the default) this specifies the
+minimum number of rows to draw.
+
+When L<Term::VT102> is in use (by overriding C<terminal_class> or
+L<terminal_object>) then it sets the height of the virtual terminal; rows that
+exceeds this number will be truncated.
 
 =item font_face
 
@@ -127,6 +169,21 @@ C<tt> tag or not. Defaults to C<1>.
 A boolean value to control whether to highlight the character under
 the cursor position, by reversing its background and foregroud color.
 Defaults to C<0>.
+
+If the cursor is on it's own line and C<show_cursor> is set, then that row will
+be omitted.
+
+=item terminal_class
+
+The class to instantiate C<terminal_object> with. Defaults to
+L<Term::VT102::Boundless>.
+
+=item terminal_object
+
+Any L<Term::VT102> compatible object should work here.
+
+If you override it most values like C<cols>, C<rows>, C<terminal_class> etc
+will be ignored.
 
 =cut
 

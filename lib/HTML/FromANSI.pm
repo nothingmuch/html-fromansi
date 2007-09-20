@@ -1,5 +1,5 @@
 package HTML::FromANSI;
-$HTML::FromANSI::VERSION = '2.02';
+$HTML::FromANSI::VERSION = '2.03';
 
 use strict;
 use base qw/Exporter/;

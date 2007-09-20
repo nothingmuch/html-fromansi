@@ -260,7 +260,7 @@ sub create_terminal_object {
         require $file;
     }
 
-    my $vt = Term::VT102::Boundless->new(
+    my $vt = $class->new(
         cols => $self->{cols},
     );
 

@@ -317,7 +317,7 @@ sub parse_vt {
         my $row = $vt->row_text($row_num);
         my $att = $vt->row_attr($row_num);
 
-        if ( $row_num == $total_rows # this is the last row
+        if ( $row_num == $total_rows and $total_rows != ($self->{rows}||0) # this is the last row
             and $row =~ /^[\s\x00]*$/s # and it's completely empty
             and !$self->{show_cursor} # and we're not showing a cursor
         ) { last } # skip it
